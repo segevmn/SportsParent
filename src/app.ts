@@ -51,6 +51,7 @@ interface CorsOptions {
   credentials: boolean;
   methods: string[];
   allowedHeaders: string[];
+  exposedHeaders?: string[];
 }
 
 const corsOptions: CorsOptions = {
@@ -67,6 +68,7 @@ const corsOptions: CorsOptions = {
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-type', 'Authorization'],
+  exposedHeaders: ['X-Role-Changed'],
 };
 
 app.use(cors(corsOptions));

@@ -4,15 +4,27 @@ import { authService } from '../services/authService';
 import { getEnv } from '../config/env';
 import { logger } from '../utils/logger';
 
-export async function getLogin(req: any, res: any, next: any) {
+export async function getLogin(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   res.status(200).json({});
 }
 
-export async function getSignup(req: any, res: any, next: any) {
+export async function getSignup(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   res.status(200).json({});
 }
 
-export async function postLogin(req: any, res: any, next: any) {
+export async function postLogin(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { email, password } = req.body;
   try {
     const user = await authService.login(email, password);
@@ -32,7 +44,11 @@ export async function postLogin(req: any, res: any, next: any) {
   }
 }
 
-export async function postSignup(req: any, res: any, next: any) {
+export async function postSignup(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { email, password, username } = req.body;
   try {
     const user = await authService.signup(email, password, username);
@@ -52,7 +68,11 @@ export async function postSignup(req: any, res: any, next: any) {
   }
 }
 
-export async function postLogout(req: any, res: any, next: any) {
+export async function postLogout(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const isProd = process.env.NODE_ENV === 'production';
   const base = {
     path: '/',
@@ -70,7 +90,11 @@ export async function postLogout(req: any, res: any, next: any) {
   res.status(204).end();
 }
 
-export async function postRefresh(req: any, res: any, next: any) {
+export async function postRefresh(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken)

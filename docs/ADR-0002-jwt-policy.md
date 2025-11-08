@@ -1,24 +1,25 @@
 # ADR-0002 — JWT Policy (Access + Refresh)
 
-**Status:** Accepted  
-**Date:** 2025-11-02  
-**Owners:** Backend
+**Status:** Accepted · **Date:** 2025-11-08
 
 ## Context
 
-We need short-lived authorization with minimal friction for users and a simple, explicit implementation for the POC. The codebase currently issues a short-lived **Access Token** and supports a **Refresh** endpoint to mint a new Access Token when it expires. Access is kept in a cookie for convenience with existing middleware; Refresh is passed in the request body for `/auth/refresh` (no cookie for refresh at Day 1).
+The system issues a short-lived Access Token and supports a Refresh endpoint to mint a new Access Token when it expires. For the POC, refresh is sent in the request body (no refresh cookie).
 
 ## Decision
 
-Adopt a **Split model**:
+-\*Access Token (JWT):\*\* short-lived (`JWT_EXPIRES_IN`), cookie `token` (also supports Authorization header).
 
-- **Access Token (JWT)** — short-lived (`JWT_EXPIRES_IN`), stored in **Cookie `token`** (sent as `Authorization: Bearer` is also supported by middleware via header or cookie).
-- **Refresh flow** — `/auth/refresh` accepts a **refreshToken in the request body**, verifies it, loads the user, and returns a fresh Access Token. _Refresh is not stored in a cookie in Day 1._
-- **Logout** — clears the `token` cookie (`204 No Content`). Since Refresh is not cookie-based at Day 1, there is nothing server-side to clear for refresh.
-
-This aligns with current code and keeps the project on track for Day 1. Token Rotation / Session Store are deferred to later phases.
+- **Refresh flow:** `POST /auth/refresh` with `refreshToken` in the **request body**; returns `{ token }`.
+- **Logout:** clears `token` cookie; `204 No Content`.
+- **Role change signal:** on admin role change, server sets `X-Role-Changed: true`; clients then call `/auth/refresh`. \*
 
 ## Details
+
+- **Access claims:** `{ id, email, role }` (single-role policy)
+- **Refresh claims:** `{ id }`
+- **TTL:** `JWT_EXPIRES_IN` (e.g., `15m`) / `REFRESH_EXPIRES_IN` (e.g., `7d`)
+- **Rotation/Revocation:** not implemented in POC
 
 ### Access Token
 
@@ -41,36 +42,16 @@ This aligns with current code and keeps the project on track for Day 1. Token Ro
 
 ## ENV / Config
 
-- `JWT_SECRET` — Access signing key (required).
-- `JWT_REFRESH_SECRET` — Refresh signing key (required).
-- `JWT_EXPIRES_IN` — Access TTL (e.g., `15m`) (required).
-- `REFRESH_EXPIRES_IN` — Refresh TTL (e.g., `7d`) (optional; default used if absent).
-- `NODE_ENV` — `development` | `production` (controls cookie `secure`).
-- `COOKIE_DOMAIN` — Domain for cookie clearing/setting (e.g., `localhost`, `app.example.com`).
+- `JWT_SECRET`, `JWT_REFRESH_SECRET`, `JWT_EXPIRES_IN`, `REFRESH_EXPIRES_IN`
+- `NODE_ENV`, `COOKIE_DOMAIN`
 
-> Day 1 stores refresh in the request body; there is **no** `REFRESH_COOKIE_NAME` yet. If/when we move refresh to an HttpOnly cookie, a follow-up ADR will add cookie name and CSRF considerations.
+## CORS / Client
 
-## Security Notes (Day 1)
+- Expose header: `X-Role-Changed` via CORS (`exposedHeaders`).
+- Client: upon `X-Role-Changed: true` → call `/auth/refresh` and update UI/permissions.
 
-- Access is short-lived and can be cleared at logout via cookie.
-- Refresh is body-based: clients must store it securely (not in localStorage if avoidable).
-- CORS must allow credentials only if cookie is used for Access; otherwise default header-based flow works as well.
-- CSRF: Not required for `/auth/refresh` at Day 1 since refresh is not cookie-based. When migrating to Refresh Cookie, CSRF/SameSite=Strict/`state` measures will be introduced in a new ADR.
+## Security Notes
 
-## Alternatives Considered
-
-- **Access-only (no refresh):** Simpler but worse UX (frequent re-login). Rejected for POC UX.
-- **Refresh Cookie (HttpOnly) from Day 1:** Best practice long-term but requires extra infra (cookie/CORS/CSRF hardening). Deferred to Day 2+.
-
-## Consequences
-
-- Users remain logged in seamlessly via `/auth/refresh`.
-- Minimal changes to existing controllers/middleware (keeps DRY).
-- Future work: add refresh rotation and server-side session revocation.
-
-## Alignment with API Contracts
-
-- `POST /auth/login` — sets `token` cookie and returns `{ message: "ok" }` (or `{ user, token }` if header-based flow used).
-- `POST /auth/refresh` — expects `{ refreshToken }` in **body**; returns `{ token }`.
-- `POST /auth/logout` — clears `token` cookie; returns `204`.
-- Protected routes use `is-Auth` and `requireRole` (single-role).
+- Access is short-lived and cleared on logout.
+- Refresh in body: clients should store securely (avoid localStorage if possible).
+- If refresh ever moves to HttpOnly cookie, add CSRF/SameSite safeguards in a separate ADR.

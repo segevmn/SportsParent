@@ -5,7 +5,11 @@ import { logger } from '../utils/logger';
 
 type AuthRequest = Request & { userId?: string };
 
-export async function deleteSelf(req: any, res: any, next: any) {
+export async function deleteSelf(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const userId = (req as AuthRequest).userId!;
     await userService.deleteUser(userId);
