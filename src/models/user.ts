@@ -1,4 +1,5 @@
 import { Schema, model, InferSchemaType } from 'mongoose';
+import { ROLES } from '../data/roles';
 
 const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
@@ -8,7 +9,7 @@ const userSchema = new Schema({
   role: {
     type: String,
     required: true,
-    enum: ['user', 'admin', 'coach', 'scout'],
+    enum: ROLES,
     default: 'user',
   },
   verified: {
