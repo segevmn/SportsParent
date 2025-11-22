@@ -1,5 +1,5 @@
 import { Schema, model, InferSchemaType } from 'mongoose';
-import { ROLES } from '../data/roles';
+import { ROLES } from '../constants/roles';
 
 const userSchema = new Schema({
   email: { type: String, required: true, unique: true },

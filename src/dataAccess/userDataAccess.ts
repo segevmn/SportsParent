@@ -1,6 +1,6 @@
 import { BaseDataAccess } from './baseDataAccess';
 import { User, UserModel } from '../models/user';
-import { Role } from '../data/roles';
+import { Role } from '../constants/roles';
 
 import { UpdateQuery } from 'mongoose';
 

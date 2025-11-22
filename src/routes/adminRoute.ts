@@ -5,7 +5,7 @@ import { isAuth } from '../middleware/is-Auth';
 import requireRole from '../middleware/requireRole';
 import validate from '../middleware/validate';
 import { body, param } from 'express-validator';
-import { ROLES_ARRAY } from '../data/roles';
+import { ROLES_ARRAY } from '../constants/roles';
 
 const router = Router();
 

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 
 import { userService } from '../services/userService';
 import { logger } from '../utils/logger';
-import { Role, isRole } from '../data/roles';
+import { Role, isRole } from '../constants/roles';
 import { logAudit } from '../utils/audit';
 
 export async function deleteUser(

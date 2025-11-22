@@ -1,7 +1,7 @@
 import { userDataAccess } from '../dataAccess/userDataAccess';
 import { logger } from '../utils/logger';
 import { NotFoundError, ValidationError } from '../utils/errors';
-import { ROLES, Role } from '../data/roles';
+import { ROLES, Role } from '../constants/roles';
 
 export const userService = {
   async deleteUser(userId: string): Promise<void> {
